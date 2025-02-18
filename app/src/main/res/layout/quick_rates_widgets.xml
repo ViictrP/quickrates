@@ -1,20 +1,76 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
     style="@style/Widget.QuickRates.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/Theme.QuickRates.AppWidgetContainer"
-    android:id="@+id/main_layout"
-    >
+    android:padding="24dp"
+    android:theme="@style/Theme.QuickRates.AppWidgetContainer">
 
     <TextView
-        android:id="@+id/appwidget_text"
+        android:id="@+id/currency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:contentDescription="@string/appwidget_currency"
+        android:text="@string/appwidget_currency"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/currency_comparison"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/currency"
+        android:layout_alignStart="@+id/currency"
+        android:contentDescription="@string/appwidget_currency_comparison"
+        android:text="@string/appwidget_currency_comparison"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="normal" />
+
+    <TextView
+        android:id="@+id/var_bid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/currency"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@string/appwidget_currency"
+        android:text="@string/appwidget_currency"
+        android:textColor="@color/gain"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/pct_change"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/var_bid"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@string/appwidget_currency_comparison"
+        android:text="@string/appwidget_currency_comparison"
+        android:textColor="@color/gain"
+        android:textSize="15sp"
+        android:textStyle="normal" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="#404040"
+        android:layout_centerVertical="true"/>
+
+    <TextView
+        android:id="@+id/value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
         android:contentDescription="@string/appwidget_dolar"
         android:text="@string/appwidget_dolar"
-        android:textSize="30sp"
-        android:textStyle="bold|italic" />
+        android:textColor="@color/gain"
+        android:textSize="42sp"
+        android:textStyle="normal" />
 </RelativeLayout>

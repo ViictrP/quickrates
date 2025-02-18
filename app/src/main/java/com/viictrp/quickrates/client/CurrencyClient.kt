@@ -1,7 +1,8 @@
-package com.viictrp.quickrates.client;
+package com.viictrp.quickrates.client
 
-import com.viictrp.quickrates.client.dto.CurrencyDTO;
+import com.viictrp.quickrates.client.dto.CurrencyDTO
 
-public interface CurrencyClient {
-    CurrencyDTO getCurrency();
+interface CurrencyClient {
+
+    suspend fun fetchCurrency(): CurrencyDTO?
 }

@@ -39,4 +39,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"
         tools:ignore="ManifestOrder" />
+
+    <uses-permission android:name="android.permission.BIND_APPWIDGET"
+        tools:ignore="ProtectedPermissions" />
 </manifest>

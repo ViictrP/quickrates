@@ -39,8 +39,8 @@
         android:contentDescription="@string/appwidget_currency"
         android:text="@string/appwidget_currency"
         android:textColor="@color/gain"
-        android:textSize="15sp"
-        android:textStyle="normal" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/pct_change"

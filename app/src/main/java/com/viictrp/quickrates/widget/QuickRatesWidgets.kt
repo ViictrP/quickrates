@@ -4,13 +4,11 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
 import com.viictrp.quickrates.R
 import com.viictrp.quickrates.client.CurrencyClient
 import com.viictrp.quickrates.client.dto.CurrencyDTO
-import com.viictrp.quickrates.scheduleWidgetUpdate
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

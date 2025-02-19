@@ -17,7 +17,6 @@ import com.viictrp.quickrates.widget.updateViews
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class WidgetUpdateWorker(

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
@@ -23,18 +24,19 @@ import java.util.concurrent.TimeUnit
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         scheduleWidgetUpdate(applicationContext)
-        setContent {
-            QuickRatesTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
+        finish()
+//        setContent {
+//            QuickRatesTheme {
+//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//                    Greeting(
+//                        name = "Android",
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
+//                }
+//            }
+//        }
     }
 }
 
@@ -55,13 +57,13 @@ fun GreetingPreview() {
 }
 
 fun scheduleWidgetUpdate(context: Context) {
-    val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>()
-        .setInitialDelay(15, TimeUnit.MINUTES)
-        .build()
+    val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(
+        15, TimeUnit.MINUTES
+    ).build()
 
-    WorkManager.getInstance(context).enqueueUniqueWork(
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         "widget_update_work",
-        ExistingWorkPolicy.REPLACE,
+        ExistingPeriodicWorkPolicy.UPDATE,
         workRequest
     )
 }

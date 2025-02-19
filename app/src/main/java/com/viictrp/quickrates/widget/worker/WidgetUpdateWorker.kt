@@ -13,6 +13,7 @@ import com.viictrp.quickrates.R
 import com.viictrp.quickrates.client.dto.CurrencyDTO
 import com.viictrp.quickrates.widget.QuickRatesWidgets
 import com.viictrp.quickrates.widget.WidgetEntryPoint
+import com.viictrp.quickrates.widget.updateViews
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -56,16 +57,7 @@ class WidgetUpdateWorker(
 
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.quick_rates_widgets)
-            views.setTextViewText(R.id.value, currency?.bid ?: "N/A")
-            views.setTextViewText(R.id.var_bid, currency?.varBid ?: "N/A")
-
-            val formattedPctChange = String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
-            views.setTextViewText(R.id.pct_change, formattedPctChange)
-
-            val color = if (currency?.varBid?.contains("-") == true) context.getColor(R.color.loss) else context.getColor(R.color.gain)
-            views.setTextColor(R.id.value, color)
-            views.setTextColor(R.id.var_bid, color)
-            views.setTextColor(R.id.pct_change, color)
+            updateViews(views, currency, context)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

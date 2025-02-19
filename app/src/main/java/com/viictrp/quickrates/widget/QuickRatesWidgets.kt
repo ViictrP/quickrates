@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.RemoteViews
 import com.viictrp.quickrates.R
 import com.viictrp.quickrates.client.CurrencyClient
+import com.viictrp.quickrates.client.dto.CurrencyDTO
 import com.viictrp.quickrates.scheduleWidgetUpdate
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -65,16 +66,7 @@ internal fun updateAppWidget(
 
     CoroutineScope(Dispatchers.IO).launch {
         val currency = client.fetchCurrency()
-        views.setTextViewText(R.id.value, currency?.bid ?: "N/A")
-        views.setTextViewText(R.id.var_bid, currency?.varBid ?: "N/A")
-
-        val formattedPctChange = String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
-        views.setTextViewText(R.id.pct_change, formattedPctChange)
-
-        val color = if (currency?.varBid?.contains("-") == true) context.getColor(R.color.loss) else context.getColor(R.color.gain)
-        views.setTextColor(R.id.value, color);
-        views.setTextColor(R.id.var_bid, color);
-        views.setTextColor(R.id.pct_change, color);
+        updateViews(views, currency, context)
 
         Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
 
@@ -82,6 +74,19 @@ internal fun updateAppWidget(
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
+}
+
+fun updateViews(views: RemoteViews, currency: CurrencyDTO?, context: Context) {
+    val formattedValue = String.format(Locale.US, "%.2f", currency?.bid?.toDoubleOrNull() ?: 0.0)
+    views.setTextViewText(R.id.value, formattedValue)
+    views.setTextViewText(R.id.var_bid, currency?.varBid ?: "---")
+
+    val formattedPctChange = String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
+    views.setTextViewText(R.id.pct_change, formattedPctChange)
+
+    val color = if (currency?.varBid?.contains("-") == true) context.getColor(R.color.loss) else context.getColor(R.color.gain)
+    views.setTextColor(R.id.var_bid, color);
+    views.setTextColor(R.id.pct_change, color);
 }
 
 @EntryPoint

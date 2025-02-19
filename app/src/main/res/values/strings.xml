@@ -2,6 +2,7 @@
     <string name="app_name">QuickRates</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="appwidget_dolar">6.05</string>
+    <string name="appwidget_loading">loading…</string>
     <string name="appwidget_currency">BRL=X</string>
     <string name="appwidget_currency_comparison">USD/BRL</string>
     <string name="add_widget">Add widget</string>

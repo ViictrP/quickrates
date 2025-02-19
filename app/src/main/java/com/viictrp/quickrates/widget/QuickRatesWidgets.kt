@@ -1,10 +1,13 @@
 package com.viictrp.quickrates.widget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import com.viictrp.quickrates.R
 import com.viictrp.quickrates.client.CurrencyClient
@@ -48,6 +51,24 @@ class QuickRatesWidgets : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         // Enter relevant functionality for when the last widget is disabled
     }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        Log.d("QuickRatesWidgets", "Received intent with action: ${intent.action}")
+
+        if (intent.action == "com.viictrp.quickrates.widget.UPDATE_WIDGET") {
+            Log.d("QuickRatesWidgets", "Widget update action received")
+
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, QuickRatesWidgets::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
+        }
+    }
 }
 
 internal fun updateAppWidget(
@@ -61,10 +82,16 @@ internal fun updateAppWidget(
     val client = entryPoint.currencyClient()
 
     val views = RemoteViews(context.packageName, R.layout.quick_rates_widgets)
+    views.setOnClickPendingIntent(R.id.main_layout, getPendingIntent(context, appWidgetId))
+    views.setViewVisibility(R.id.loading, View.VISIBLE)
+    CoroutineScope(Dispatchers.Main).launch {
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
 
     CoroutineScope(Dispatchers.IO).launch {
         val currency = client.fetchCurrency()
         updateViews(views, currency, context)
+        views.setViewVisibility(R.id.loading, View.INVISIBLE)
 
         Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
 
@@ -74,6 +101,21 @@ internal fun updateAppWidget(
     }
 }
 
+fun getPendingIntent(context: Context, appWidgetId: Int): PendingIntent {
+    val intent = Intent(context, QuickRatesWidgets::class.java).apply {
+        action = "com.viictrp.quickrates.widget.UPDATE_WIDGET" // Ensure it's exactly the same
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+    }
+
+    Log.d("QuickRatesWidgets", "Creating PendingIntent for action: ${intent.action}")
+
+    return PendingIntent.getBroadcast(
+        context,
+        appWidgetId,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+}
 fun updateViews(views: RemoteViews, currency: CurrencyDTO?, context: Context) {
     val formattedValue = String.format(Locale.US, "%.2f", currency?.bid?.toDoubleOrNull() ?: "---")
     views.setTextViewText(R.id.value, formattedValue)

@@ -75,9 +75,11 @@ internal fun updateAppWidget(
 }
 
 fun updateViews(views: RemoteViews, currency: CurrencyDTO?, context: Context) {
-    val formattedValue = String.format(Locale.US, "%.2f", currency?.bid?.toDoubleOrNull() ?: 0.0)
+    val formattedValue = String.format(Locale.US, "%.2f", currency?.bid?.toDoubleOrNull() ?: "---")
     views.setTextViewText(R.id.value, formattedValue)
-    views.setTextViewText(R.id.var_bid, currency?.varBid ?: "---")
+
+    val formattedVarBid = String.format(Locale.US, "%.2f", currency?.varBid?.toDoubleOrNull() ?: "---")
+    views.setTextViewText(R.id.var_bid, formattedVarBid)
 
     val formattedPctChange = String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
     views.setTextViewText(R.id.pct_change, formattedPctChange)

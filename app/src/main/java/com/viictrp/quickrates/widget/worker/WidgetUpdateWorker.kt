@@ -5,8 +5,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.viictrp.quickrates.R
@@ -32,21 +35,10 @@ class WidgetUpdateWorker(
 
         return withContext(Dispatchers.IO) {
             val currency = client.fetchCurrency()
-
             updateWidget(currency)
-//            scheduleNextWorker(context)
-
             Log.d("WidgetUpdateWorker", "Widget updated with currency: ${currency?.bid}")
             Result.success()
         }
-    }
-
-    private fun scheduleNextWorker(context: Context) {
-        val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>()
-            .setInitialDelay(10, TimeUnit.SECONDS) // Run every 1 second
-            .build()
-
-        WorkManager.getInstance(context).enqueue(workRequest)
     }
 
     private fun updateWidget(currency: CurrencyDTO?) {
@@ -58,7 +50,28 @@ class WidgetUpdateWorker(
             val views = RemoteViews(context.packageName, R.layout.quick_rates_widgets)
             updateViews(views, currency, context)
 
+            Log.d("WidgetUpdateWorker", "Persisting the updates")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
+}
+
+fun scheduleWidgetUpdate(context: Context) {
+    val constraints = Constraints.Builder()
+        .setRequiresBatteryNotLow(true)
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+
+    val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(
+        15, TimeUnit.MINUTES // Runs every 15 minutes
+    )
+        .setConstraints(constraints)
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "widget_update_work",
+        ExistingPeriodicWorkPolicy.UPDATE, // Ensures the work continues without being replaced
+        workRequest
+    )
+    Log.d("WidgetUpdateWorker", "worker scheduled")
 }

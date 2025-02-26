@@ -12,6 +12,7 @@ import android.widget.RemoteViews
 import com.viictrp.quickrates.R
 import com.viictrp.quickrates.client.CurrencyClient
 import com.viictrp.quickrates.client.dto.CurrencyDTO
+import com.viictrp.quickrates.widget.worker.scheduleWidgetUpdate
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -19,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 class QuickRatesWidgets : AppWidgetProvider() {
@@ -37,8 +39,6 @@ class QuickRatesWidgets : AppWidgetProvider() {
     }
 
     override fun onEnabled(context: Context) {
-        super.onEnabled(context)
-
         val appWidgetManager = AppWidgetManager.getInstance(context)
         val componentName = ComponentName(context, QuickRatesWidgets::class.java)
         val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
@@ -46,6 +46,7 @@ class QuickRatesWidgets : AppWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
+        scheduleWidgetUpdate(context)
     }
 
     override fun onDisabled(context: Context) {
@@ -84,18 +85,20 @@ internal fun updateAppWidget(
     val views = RemoteViews(context.packageName, R.layout.quick_rates_widgets)
     views.setOnClickPendingIntent(R.id.main_layout, getPendingIntent(context, appWidgetId))
     views.setViewVisibility(R.id.loading, View.VISIBLE)
-    CoroutineScope(Dispatchers.Main).launch {
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-    }
 
+    appWidgetManager.updateAppWidget(appWidgetId, views)
+
+    // Use a single CoroutineScope to avoid leaks
     CoroutineScope(Dispatchers.IO).launch {
         val currency = client.fetchCurrency()
+        Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
+
         updateViews(views, currency, context)
         views.setViewVisibility(R.id.loading, View.INVISIBLE)
 
-        Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
-
-        CoroutineScope(Dispatchers.Main).launch {
+        // Ensure UI updates are on the main thread
+        withContext(Dispatchers.Main) {
+            Log.d("QuickRatesWidgets", "Persisting the updates")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
@@ -111,22 +114,29 @@ fun getPendingIntent(context: Context, appWidgetId: Int): PendingIntent {
 
     return PendingIntent.getBroadcast(
         context,
-        appWidgetId,
+        System.currentTimeMillis().toInt(),
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }
+
 fun updateViews(views: RemoteViews, currency: CurrencyDTO?, context: Context) {
+    Log.d("QuickRatesWidgets", "Updating widget's views")
     val formattedValue = String.format(Locale.US, "%.2f", currency?.bid?.toDoubleOrNull() ?: "---")
     views.setTextViewText(R.id.value, formattedValue)
 
-    val formattedVarBid = String.format(Locale.US, "%.2f", currency?.varBid?.toDoubleOrNull() ?: "---")
+    val formattedVarBid =
+        String.format(Locale.US, "%.2f", currency?.varBid?.toDoubleOrNull() ?: "---")
     views.setTextViewText(R.id.var_bid, formattedVarBid)
 
-    val formattedPctChange = String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
+    val formattedPctChange =
+        String.format(Locale.US, "%.2f", currency?.pctChange?.toDoubleOrNull() ?: 0.0) + "%"
     views.setTextViewText(R.id.pct_change, formattedPctChange)
 
-    val color = if (currency?.varBid?.contains("-") == true) context.getColor(R.color.loss) else context.getColor(R.color.gain)
+    val color =
+        if (currency?.varBid?.contains("-") == true) context.getColor(R.color.loss) else context.getColor(
+            R.color.gain
+        )
     views.setTextColor(R.id.var_bid, color);
     views.setTextColor(R.id.pct_change, color);
 }

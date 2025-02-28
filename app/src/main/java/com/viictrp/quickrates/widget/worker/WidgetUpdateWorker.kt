@@ -33,15 +33,14 @@ class WidgetUpdateWorker(
         val entryPoint = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val client = entryPoint.currencyClient()
 
-        return withContext(Dispatchers.IO) {
-            val currency = client.fetchCurrency()
-            updateWidget(currency)
-            Log.d("WidgetUpdateWorker", "Widget updated with currency: ${currency?.bid}")
-            Result.success()
-        }
+        val currency = client.fetchCurrency()
+        updateWidget(currency)
+
+        Log.d("WidgetUpdateWorker", "Widget updated with currency: ${currency?.bid}")
+        return Result.success()
     }
 
-    private fun updateWidget(currency: CurrencyDTO?) {
+    private suspend fun updateWidget(currency: CurrencyDTO?) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
         val componentName = ComponentName(context, QuickRatesWidgets::class.java)
         val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
@@ -50,8 +49,10 @@ class WidgetUpdateWorker(
             val views = RemoteViews(context.packageName, R.layout.quick_rates_widgets)
             updateViews(views, currency, context)
 
-            Log.d("WidgetUpdateWorker", "Persisting the updates")
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            withContext(Dispatchers.Main) {
+                Log.d("QuickRatesWidgets", "Persisting the updates")
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
         }
     }
 }
@@ -70,7 +71,7 @@ fun scheduleWidgetUpdate(context: Context) {
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         "widget_update_work",
-        ExistingPeriodicWorkPolicy.UPDATE, // Ensures the work continues without being replaced
+        ExistingPeriodicWorkPolicy.UPDATE,
         workRequest
     )
     Log.d("WidgetUpdateWorker", "worker scheduled")

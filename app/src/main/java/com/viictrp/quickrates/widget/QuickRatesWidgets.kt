@@ -90,16 +90,20 @@ internal fun updateAppWidget(
 
     // Use a single CoroutineScope to avoid leaks
     CoroutineScope(Dispatchers.IO).launch {
-        val currency = client.fetchCurrency()
-        Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
+        try {
+            val currency = client.fetchCurrency()
+            Log.d("QuickRatesWidgets", "Currency fetched: ${currency?.bid}")
 
-        updateViews(views, currency, context)
-        views.setViewVisibility(R.id.loading, View.INVISIBLE)
-
-        // Ensure UI updates are on the main thread
-        withContext(Dispatchers.Main) {
-            Log.d("QuickRatesWidgets", "Persisting the updates")
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            updateViews(views, currency, context)
+        } catch (e: Exception) {
+            Log.e("QuickRatesWidgets", "Error fetching currency", e)
+        } finally {
+            // Ensure UI updates are on the main thread
+            withContext(Dispatchers.Main) {
+                views.setViewVisibility(R.id.loading, View.INVISIBLE) // ✅ Always hide loading
+                Log.d("QuickRatesWidgets", "Persisting the updates")
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
         }
     }
 }

@@ -20,5 +20,5 @@ data class CurrencyDTO(
 
 @Serializable
 data class CurrencyResponse(
-    @SerialName("USDBRL") val usdBrl: CurrencyDTO
+    @SerialName("USDBRLPTAX") val usdBrl: CurrencyDTO
 )

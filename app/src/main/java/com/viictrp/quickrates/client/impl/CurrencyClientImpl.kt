@@ -14,7 +14,7 @@ class CurrencyClientImpl : CurrencyClient {
     override suspend fun fetchCurrency(): CurrencyDTO? {
         return try {
             val request = Request.Builder()
-                .url("https://economia.awesomeapi.com.br/json/last/USD-BRL")
+                .url("https://economia.awesomeapi.com.br/json/last/USD-BRLPTAX?token=token")
                 .build()
 
             val currencyResponse = client.newCall(request).execute().use { response ->
